@@ -1,0 +1,15 @@
+{
+  "name": "learning_xorxos",
+  "version": "1.0.0",
+  "description": "Learning_Xorxos is a Educational based application ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Xorxos",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2",
+    "nodemon": "^3.1.9"
+  }
+}
