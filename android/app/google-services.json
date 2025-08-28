@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "165763079976",
+    "project_id": "learningxorxos",
+    "storage_bucket": "learningxorxos.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:165763079976:android:4cda544ee3068ed752fa1d",
+        "android_client_info": {
+          "package_name": "com.learning_xorxos"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "165763079976-172f803rdciud6v3gjvaehdbtvp6hl01.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.learning_xorxos",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "165763079976-8fma85ced05m5ij91qaju490uparvn9k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAbY_xyJ-0I_tXQzmKkTE5PXTNnTCSvrE0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "165763079976-8fma85ced05m5ij91qaju490uparvn9k.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

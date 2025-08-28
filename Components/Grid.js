@@ -1,53 +1,77 @@
+import { useNavigation } from "@react-navigation/native";
 import React from "react";
-import {View,Text,StyleSheet,ScrollView,FlatList} from "react-native"
+import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from "react-native";
+import LinearGradient from "react-native-linear-gradient";
 
-const Data =()=>{
-  return  [ 
-    { id: 1, users: [1, 2] },
-    { id: 2, users:"resftv" },
-    { id: 3, users:"resftv" },
-    { id: 4, users:"resftv" },
-    { id: 5, users: [1, 2] },
-    { id: 6, users:"resftv" },
-    { id: 7, users:"resftv" },
-    { id: 8, users:"resftv" }
-  ]    
-}
+const Grid = () => {
+    const navigation = useNavigation();
+    const Data = [
+        { id: 1, users: require("../Components/College/assets/WebDev1.jpg"), title: "Web Development", press: () => navigation.navigate('WebDev') },
+        { id: 2, users: require("../Components/College/assets/AppDev.jpg"), title: "App Development", press: () => navigation.navigate('AppDev') },
+        { id: 3, users: require("../Components/College/assets/humanskills.png"), title: "human skills", press: () => navigation.navigate('humanskills') },
+        { id: 4, users: require("../Components/College/assets/humanskills.png"), title: "English speaking", press: () => navigation.navigate('EnglishSpeaking') },
+        
+    ];
 
-const Grid=()=>{
-    return(
-        <View style={Styles.container}>
-            <FlatList 
-            data={Data()}
-            renderItem={({item})=>(
-                <View style={Styles.GridContainer}>
-                    <Text style={{}}>
-                        {item.users}
-                    </Text>
-                </View>
-            )}
-            keyExtractor={(item)=>item.id}
-            horizontal={true}
-            showsHorizontalScrollIndicator={true}
-            nestedScrollEnabled={true}
+    return (
+        <LinearGradient colors={["#ff7e5f", "#feb47b"]} style={Styles.container}>
+            <Text style={Styles.heading}>Our Services</Text>
+            <FlatList
+                data={Data}
+                renderItem={({ item }) => (
+                    <View style={Styles.GridContainer}>
+                        <TouchableOpacity onPress={item.press}>
+                            <Image source={item.users} style={Styles.imagegrid} />
+                            <Text style={Styles.text}>{item.title}</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
+                keyExtractor={(item) => item.id.toString()}
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+                nestedScrollEnabled={true}
             />
-        </View>
-    )
-}
+        </LinearGradient>
+    );
+};
 
- const Styles=StyleSheet.create({
-    container:{
-         backgroundColor:"#101929"
+const Styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 10,
     },
-    GridContainer:{
-        borderWidth:2,
-        borderRadius:7,
-        borderColor:"black",
-        left:10,
-        height: 179,
-        width:150,
-        marginRight:6,
-        backgroundColor:"white"
-    }
-})
-export default Grid
+    heading: {
+        fontSize: 22,
+        fontWeight: "bold",
+        color: "#fff",
+        textAlign: "center",
+        marginBottom: 10,
+    },
+    GridContainer: {
+        alignItems: "center",
+        marginHorizontal: 8,
+        backgroundColor: "#ffffffaa", // Semi-transparent white
+        borderRadius: 12,
+        overflow: "hidden",
+        padding: 10,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
+        elevation: 5,
+    },
+    imagegrid: {
+        height: 150,
+        width: 150,
+        borderRadius: 10,
+    },
+    text: {
+        fontSize: 16,
+        fontWeight: "bold",
+        color: "#333",
+        textAlign: "center",
+        marginTop: 8,
+    },
+});
+
+export default Grid;

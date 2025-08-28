@@ -1,41 +1,149 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
-import Ionicons from "react-native-vector-icons/Ionicons"; 
+import { useState, useEffect } from "react";
+import { View, Text, TextInput, TouchableOpacity, Alert, Image } from "react-native";
+import Ionicons from "react-native-vector-icons/Ionicons";
+import { getAuth, GoogleAuthProvider, signInWithEmailAndPassword } from '@react-native-firebase/auth';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import app from "./app"
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import SplashScreen from "./Splashscreen";
+import { BackHandler } from "react-native"
 
-const LoginScreen = ({ navigation }) => {
+const LoginScreen = ({ navigation }, onGoogleSignIn) => {
+  //define state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Track if splash should be shown
+  //call auth function
 
-  const saveApiData = async () => {
-    const data = {
-      email: email, 
-      password: password
-    };
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
 
-    try {
-      const url = "http://192.168.96.155:3000/login"; // Replace with your actual local IP
-      let result = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+    return () => backHandler.remove(); // Cleanup function
+  }, []);
 
-      let response = await result.json();
-      console.log(response); 
-      Alert.alert("Success", "Data sent to server!");
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "Failed to send data.");
-    }
+  const handleBackPress = () => {
+    Alert.alert('Exit App', 'Are you sure you want to exit?', [
+      {
+        text: 'Cancel',
+        onPress: () => null,
+        style: 'cancel',
+      },
+      {
+        text: 'Exit',
+        onPress: () => BackHandler.exitApp(),
+      },
+    ]);
+    return true;
   };
 
+
+
+  const auth = getAuth(app);
+  useEffect(() => {
+
+    const checkAuthState = async () => {
+      const user = await getAuth().currentUser;
+      if (user) {
+        // If a user is found, wait for a short period and then navigate to Home
+        setTimeout(() => {
+          navigation.replace("Home");
+        }, 1000);
+      } else {
+        // Otherwise, remove the splash and show login
+        setIsLoading(false);
+      }
+    };
+
+    checkAuthState();
+
+    // Configure Google Sign-In
+    GoogleSignin.configure({
+      webClientId: "165763079976-8fma85ced05m5ij91qaju490uparvn9k.apps.googleusercontent.com",
+    });
+  }, []); // Empty dependency array ensures this runs only once after component mounts
+
+  //signinwithgoogle
+  const signInWithGoogle = async () => {
+    try {
+      // Check if Play services are available on the device {showPlayServicesUpdateDialog:true}
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+
+      // Perform the sign-in process and capture user info
+      const userInfo = await GoogleSignin.signIn();
+
+      //  console.log("Google Sign-In successful:", userInfo); // Log user info
+
+      //  // Check the complete user info structure to confirm token extraction
+      //  console.log("Full user info:", JSON.stringify(userInfo, null, 2)); // More detailed log
+
+
+      const { idToken } = userInfo?.data || {};
+      await AsyncStorage.setItem("token", idToken);
+
+      //  const { idToken } = userInfo.data;
+      // Make sure idToken is accessed correctly
+      const { email, name, photo } = userInfo.data.user
+      AsyncStorage.setItem("email", email);
+      AsyncStorage.setItem("name", name);
+      AsyncStorage.setItem("photo", photo);
+
+      //  console.log("idToken:", idToken); // Log the idToken
+
+      if (!idToken) {
+        console.log("idToken is undefined!");  // Debugging log if idToken is missing
+        return;
+      }
+
+      // Create a Firebase credential with the idToken
+      const googleCredential = GoogleAuthProvider.credential(idToken);
+
+      // Sign in to Firebase with the Google credentials
+      await auth.signInWithCredential(googleCredential);
+      console.log("Firebase authentication successful");
+
+      setIsLoading(true); // show splash screen
+      setTimeout(() => {
+        navigation.navigate("Home");
+      }, 3000); // 3-second splash screen
+
+      onGoogleSignIn(true);
+
+    } catch (error) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        console.log("User cancelled the login flow");
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        console.log("Sign-in is already in progress");
+      } else {
+        console.error("Google Sign-In error:", error); // Log the full error
+      }
+    }
+  };
+  if (isLoading) {
+    return <SplashScreen navigation={navigation} />;
+  }
+
+  //data returning point
+
+  const handleLogin = async (email, password) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      AsyncStorage.setItem("token", "123");
+      AsyncStorage.setItem("email", email);
+      AsyncStorage.setItem("name", "learner");
+      setIsLoading(true); // show splash screen
+      setTimeout(() => {
+        navigation.navigate('Home');
+      }, 3000); // delay 3 sec after login
+      console.log("User logged in!");
+    } catch (error) {
+      console.error("Login error:", error.code, error.message);
+      Alert.alert("Login Error", error.message);
+    }
+  };
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Login</Text>
-
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -63,13 +171,21 @@ const LoginScreen = ({ navigation }) => {
         <Text style={styles.forgotText}>Forgot Password?</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.loginButton} onPress={saveApiData}>
+      <TouchableOpacity style={styles.loginButton} onPress={() => handleLogin(email, password)}>
         <Text style={styles.loginText}>Login</Text>
       </TouchableOpacity>
 
-      <Text style={styles.signupText}>Don't have an account?</Text>   
-      <TouchableOpacity onPress={() => navigation.navigate("RegisterScreen")}>
+      <Text style={styles.signupText}>Don't have an account?</Text>
+
+      <TouchableOpacity style={{
+        height: 100, width: 100, top: -17.5, left: 110,
+      }} delayPressIn={0} onPress={() => navigation.navigate('RegisterScreen')}>
         <Text style={styles.signupLink}>Sign Up</Text>
+      </TouchableOpacity>
+
+
+      <TouchableOpacity onPressIn={signInWithGoogle}>
+        <Image source={require("./College/assets/Google-auth.png")} style={{ width: 50, height: 50, top: 55, left: -87, borderRadius: 20 }} />
       </TouchableOpacity>
     </View>
   );
@@ -134,8 +250,6 @@ const styles = {
   signupLink: {
     color: "#ff5722",
     fontWeight: "bold",
-    top: -17.5,
-    left: 80,
   },
 };
 
